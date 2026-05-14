@@ -42,24 +42,21 @@ def upload_card(title: str, icon_tag: str, color_hex: str, image_url: rx.Var, up
                 ),
                 width="100%",
             ),
-            # Input de carga (dispara cámara/galería en móviles)
-            rx.upload(
-                rx.button(
-                    f"Seleccionar {title}", 
-                    variant="ghost", 
-                    color_scheme="gray",
-                    size="2", 
-                    width="100%",
-                    border=f"1px solid {color_hex}33"
-                ),
+            # Input de carga (la subida se inicia al seleccionar el archivo)
+            rx.input(
                 id=upload_id,
-                accept={"image/*": [".jpg", ".jpeg", ".png"]}, # Habilita la cámara
-                max_files=1,
-                border="none",
-                padding="0",
+                type_="file",
+                accept="image/*",
+                on_change=upload_handler(rx.selected_files(upload_id)),
                 width="100%",
-                on_change=upload_handler(rx.selected_files(upload_id))
+                border=f"1px solid {color_hex}33",
+                border_radius="lg",
+                padding="1em",
+                bg="#111",
+                color="white",
+                _hover={"border_color": color_hex},
             ),
+            rx.text("La imagen se sube automáticamente al seleccionarla.", color="gray.400", size="1"),
             spacing="3",
             width="100%"
         ),
