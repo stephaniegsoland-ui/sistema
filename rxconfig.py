@@ -2,8 +2,8 @@ import reflex as rx
 
 config = rx.Config(
     app_name="sistema",
-    # Esta línea es la clave:
     api_url="http://localhost:8001", 
-    db_url="mysql+pymysql://root:root_password@gestion_db/sistema_laravel_db",
+    # CAMBIO: El final de la URL debe ser el nombre de la DB, no el del servicio
+    db_url="mysql+pymysql://root:root_password@gestion_db:3306/sistema_laravel_db",
     upload_dest="assets",
 )

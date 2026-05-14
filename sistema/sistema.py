@@ -9,6 +9,7 @@ from .pages.stock import stock_page
 from .pages.epp import epp_page  # Importante para que /epp funcione
 from .pages.fleet import fleet_page
 from .pages.inspeccion import inspeccion_page
+from .pages.reportes import reportes_page
 # 2. Inicializar la base de datos al arrancar
 try:
     initialize_database()
@@ -49,6 +50,11 @@ app.add_page(
 app.add_page(
     epp_page, 
     route="/epp"
+)
+
+app.add_page(
+    reportes_page,
+    route="/vehiculos/reportes"
 )
 
 

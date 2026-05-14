@@ -1,6 +1,7 @@
 import os
+from sqlalchemy import text
 from sqlmodel import SQLModel, create_engine, select, Session
-from .api.models import Usuario, Producto
+from .api.models import Usuario, Producto, InspeccionReporte
 
 
 def get_db_url() -> str:
@@ -61,3 +62,21 @@ def initialize_database() -> None:
             session.add_all(productos)
 
         session.commit()
+
+    if engine.dialect.name in ("mysql", "mariadb"):
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(
+                    "ALTER TABLE inspeccionreporte MODIFY recomendacion LONGTEXT"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE inspeccionreporte MODIFY hallazgos_json LONGTEXT"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE inspeccionreporte MODIFY damage_map_lunes_json LONGTEXT"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE inspeccionreporte MODIFY damage_map_viernes_json LONGTEXT"
+                ))
+        except Exception:
+            pass

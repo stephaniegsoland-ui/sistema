@@ -1,4 +1,5 @@
 services:
+  # --- SERVICIO DE BASE DE DATOS ---
   gestion_db:
     image: mysql:8.4
     container_name: gestion_db
@@ -15,6 +16,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # --- SERVICIO DE REFLEX (Ahora dentro de services) ---
   app_reflex:
     build: .
     container_name: app_reflex
@@ -23,15 +25,13 @@ services:
       - "8001:8000"
     environment:
       - PYTHONPATH=/app
-      - DB_URL=mysql+pymysql://root:root_password@gestion_db:3306/sistema_reflex_db
-    # --- CAMBIO AQUÍ ---
+      - DB_URL=mysql+pymysql://root:root_password@gestion_db:3306/sistema_laravel_db 
     volumes:
-      - .:/app  # Sincroniza tu carpeta actual con /app en el contenedor
+      - .:/app 
     depends_on:
       gestion_db:
         condition: service_healthy
 
+# --- SECCIÓN DE VOLÚMENES (Fuera de services) ---
 volumes:
   db_data:
-
- 

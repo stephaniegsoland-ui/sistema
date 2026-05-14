@@ -57,7 +57,12 @@ def sidebar(current_page: str = ""):
             sidebar_item("Procura", "shopping-cart", "/procura", active=current_page == "/procura"),
             sidebar_item("Personal", "users", "/personal", active=current_page == "/personal"),
             sidebar_item("Seguridad EPP", "shield-check", "/epp", active=current_page == "/epp"),
-            sidebar_item("Vehículos", "truck", "/vehiculos", active=current_page == "/vehiculos"),
+            sidebar_item("Vehículos", "truck", "/vehiculos", active=current_page.startswith("/vehiculos")),
+            rx.vstack(
+                sidebar_item("Reportes de vehículos", "file-text", "/vehiculos/reportes", active=current_page == "/vehiculos/reportes"),
+                padding_left="20px",
+                width="100%",
+            ),
             sidebar_item("Inspección Vehicular", "camera", "/inspeccion", active=current_page == "/inspeccion"),
 
             sidebar_header("Operaciones"),
@@ -66,7 +71,6 @@ def sidebar(current_page: str = ""):
             sidebar_item("Hoja de Tiempo", "clock", "/tiempo", active=current_page == "/tiempo"),
 
             sidebar_header("Análisis"),
-            sidebar_item("Reportes", "file-text", "/reportes", active=current_page == "/reportes"),
             sidebar_item("IA", "brain", "/ia", active=current_page == "/ia"),
 
             sidebar_header("Administración"),
