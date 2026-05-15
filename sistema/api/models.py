@@ -31,6 +31,18 @@ class InspeccionReporte(SQLModel, table=True):
     damage_map_lunes_json: str = Field(sa_column=Column(Text), default="")
     damage_map_viernes_json: str = Field(sa_column=Column(Text), default="")
 
+class ProcuraSolicitud(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    solicitante: str
+    departamento: str
+    material: str
+    cantidad: int
+    detalle: str = Field(default="")
+    revisado: bool = Field(default=False)
+    comprado: bool = Field(default=False)
+    enviado: bool = Field(default=False)
+    fecha_solicitud: str = Field(default="")
+
 class Vehiculo(rx.Base):
     nombre: str
     modelo: str

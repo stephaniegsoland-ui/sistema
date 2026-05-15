@@ -63,8 +63,6 @@ def sidebar(current_page: str = ""):
                 padding_left="20px",
                 width="100%",
             ),
-            sidebar_item("Inspección Vehicular", "camera", "/inspeccion", active=current_page == "/inspeccion"),
-
             sidebar_header("Operaciones"),
             sidebar_item("Seguridad", "lock", "/seguridad", active=current_page == "/seguridad"),
             sidebar_item("Scanner", "maximize", "/scanner", active=current_page == "/scanner"),

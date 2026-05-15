@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import text
 from sqlmodel import SQLModel, create_engine, select, Session
-from .api.models import Usuario, Producto, InspeccionReporte
+from .api.models import Usuario, Producto, InspeccionReporte, ProcuraSolicitud
 
 
 def get_db_url() -> str:
