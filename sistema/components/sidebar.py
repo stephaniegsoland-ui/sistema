@@ -55,6 +55,12 @@ def sidebar(current_page: str = ""):
             sidebar_header("Gestión"),
             sidebar_item("Stock", "box", "/stock", active=current_page == "/stock"),
             sidebar_item("Procura", "shopping-cart", "/procura", active=current_page == "/procura"),
+            rx.vstack(
+                sidebar_item("Estadísticas", "bar-chart-big", "/procura/estadisticas", active=current_page == "/procura/estadisticas"),
+                padding_left="20px",
+                width="100%",
+                spacing="0",
+            ),
             sidebar_item("Personal", "users", "/personal", active=current_page == "/personal"),
             sidebar_item("Seguridad EPP", "shield-check", "/epp", active=current_page == "/epp"),
             sidebar_item("Vehículos", "truck", "/vehiculos", active=current_page.startswith("/vehiculos")),

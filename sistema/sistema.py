@@ -10,6 +10,7 @@ from .pages.epp import epp_page  # Importante para que /epp funcione
 from .pages.fleet import fleet_page
 from .pages.inspeccion import inspeccion_page
 from .pages.reportes import reportes_page
+from sistema.pages.procura_stats import procura_stats_page
 from .pages.procura import procura_page
 # 2. Inicializar la base de datos al arrancar
 try:
