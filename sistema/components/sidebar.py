@@ -71,8 +71,7 @@ def sidebar(current_page: str = ""):
             ),
             sidebar_header("Operaciones"),
             sidebar_item("Seguridad", "lock", "/seguridad", active=current_page == "/seguridad"),
-            sidebar_item("Scanner", "maximize", "/scanner", active=current_page == "/scanner"),
-            sidebar_item("Hoja de Tiempo", "clock", "/tiempo", active=current_page == "/tiempo"),
+            sidebar_item("Hoja de Tiempo", "clock", "/timesheet", current_page),
 
             sidebar_header("Análisis"),
             sidebar_item("IA", "brain", "/ia", active=current_page == "/ia"),

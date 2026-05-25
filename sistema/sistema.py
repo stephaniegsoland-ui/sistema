@@ -12,6 +12,8 @@ from .pages.inspeccion import inspeccion_page
 from .pages.reportes import reportes_page
 from sistema.pages.procura_stats import procura_stats_page
 from .pages.procura import procura_page
+from .pages.timesheet import timesheet_page
+from .pages.personal import personal_page
 # 2. Inicializar la base de datos al arrancar
 try:
     initialize_database()
@@ -37,6 +39,11 @@ app.add_page(inspeccion_page, route="/vehiculos/[pid]")
 app.add_page(
     login_page, 
     route="/"
+)
+
+app.add_page(
+    personal_page, 
+    route="/personal"
 )
 
 app.add_page(
