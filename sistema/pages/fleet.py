@@ -1,13 +1,14 @@
 import reflex as rx
-from ..states.fleet_state import FleetState
-from ..components.fleet_view import fleet_comparison_view # Importa la vista completa
-from ..components.sidebar import sidebar  # Importa el sidebar para navegación
+from .sidebar import sidebar
 
-def fleet_page() -> rx.Component:
-    """Esta es la función principal que Reflex registrará como página."""
+def layout(component: rx.Component) -> rx.Component:
+    """Envuelve cualquier página con el sidebar."""
     return rx.hstack(
-        sidebar(),
-        fleet_comparison_view()
+        sidebar(),  # Sidebar aquí
+        rx.box(component, width="100%", padding="1em"), # Tu contenido aquí
+        align_items="start",
+        width="100%",
+        height="100vh"
     )
 
 def vehiculo_card(vehi):

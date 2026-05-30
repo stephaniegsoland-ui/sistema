@@ -28,5 +28,5 @@ RUN reflex init
 # Exponemos puertos de Frontend y Backend
 EXPOSE 3000 8000
 
-# Comando para arrancar en modo desarrollo
-CMD ["reflex", "run", "--env", "dev"]
+# Comando para crear el admin automáticamente y luego arrancar la app
+CMD python crear_admin.py && reflex run --env dev

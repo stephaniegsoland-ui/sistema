@@ -1,116 +1,51 @@
+# --- sistema/states/dashboard_state.py ---
 import reflex as rx
-import datetime
-import pytz
-from sqlmodel import select
-from ..api.models import Producto
-from ..db_init import get_session
+import asyncio
+from datetime import datetime
+import random
+
+class LogEvent(rx.Base):
+    time: str
+    log_type: str
+    msg: str
+    color: str
 
 class DashboardState(rx.State):
-    # Variables de tiempo
-    @rx.var
-    def hora_venezuela(self) -> str:
-        return datetime.datetime.now(pytz.timezone("America/Caracas")).strftime("%H:%M:%S")
+    syslog_events: list[LogEvent] = [
+        LogEvent(time="10:35:40", log_type="SYS", msg="Sistema Soland inicializado correctamente.", color="#10b981")
+    ]
+    is_monitoring: bool = False
 
-    @rx.var
-    def hora_espana(self) -> str:
-        return datetime.datetime.now(pytz.timezone("Europe/Madrid")).strftime("%H:%M:%S")
-
-    @rx.var
-    def hora_usa(self) -> str:
-        return datetime.datetime.now(pytz.timezone("US/Eastern")).strftime("%H:%M:%S")
-
-    @rx.var
-    def hora_china(self) -> str:
-        return datetime.datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%H:%M:%S")
-
-    @rx.var
-    def eficiencia(self) -> str:
-        return "94%"
-
-    @rx.var
-    def resolucion(self) -> str:
-        return "88%"
-
-    @rx.var
-    def satisfaccion(self) -> str:
-        return "96%"
-
-    @rx.var
-    def disponibilidad(self) -> str:
-        return "100%"
-
-    # Lógica de Stock desde la BD
-    @rx.var
-    def total_stock(self) -> str:
-        try:
-            with get_session() as session:
-                productos = session.exec(select(Producto)).all()
-                total = sum(p.cantidad for p in productos)
-                return f"{total:,}"
-        except Exception:
-            return "0"
-
-    @rx.var
-    def tickets_pendientes(self) -> str:
-        return "12"
-
-    @rx.var
-    def tickets_en_proceso(self) -> str:
-        return "8"
-
-    @rx.var
-    def tickets_completados(self) -> str:
-        return "24"
-
-    @rx.var
-    def alta_prioridad(self) -> str:
-        return "3"
-
-    @rx.var
-    def media_prioridad(self) -> str:
-        return "7"
-
-    @rx.var
-    def baja_prioridad(self) -> str:
-        return "10"
-
-    @rx.var
-    def tiempo_promedio(self) -> str:
-        return "2.4 hrs"
-
-    @rx.var
-    def tasa_sla(self) -> str:
-        return "96%"
-
-    @rx.var
-    def inventario_alicate(self) -> int:
-        return 48
-
-    @rx.var
-    def inventario_mascaras(self) -> int:
-        return 92
-
-    @rx.var
-    def inventario_n95(self) -> int:
-        return 124
-
-    @rx.var
-    def inventario_escritorio(self) -> int:
-        return 56
-
-    @rx.var
-    def pedido_botas(self) -> int:
-        return 82
-
-    @rx.var
-    def pedido_suministros(self) -> int:
-        return 520
-
-    @rx.var
-    def pedido_equipos(self) -> int:
-        return 260
-
-    def check_login(self):
-        if not self.is_hydrated:
+    async def start_log_stream(self):
+        """Manejador inicial que levanta de forma segura el bucle asíncrono"""
+        if self.is_monitoring:
             return
-        pass
+        self.is_monitoring = True
+        
+        # Disparamos el bucle infinito sin bloquear la renderización de la página
+        asyncio.create_task(self.run_logger_loop())
+
+    async def run_logger_loop(self):
+        """Bucle en segundo plano puro usando asyncio estándar"""
+        event_pool = [
+            ("SYS", "Sincronización exitosa con Base de Datos Laravel.", "#10b981"),
+            ("AI", "Módulo IA: Procesamiento de análisis de EPP completado.", "#6366f1"),
+            ("NET", "Cisco Catalyst 3560: Interface GigabitEthernet0/1 cambiado a UP.", "#eab308"),
+            ("SYS", "Usuario admin_soland actualizó permisos de colaborador.", "#3b82f6"),
+            ("NET", "Syslog Server: Recibido Keep-Alive de Switch Core.", "#eab308"),
+            ("AI", "Google Generative AI: Datos de Procura estructurados con éxito.", "#6366f1"),
+            ("SYS", "Cola de Tickets: Ticket TK-2847 pasó a estado [En Proceso].", "#f97316"),
+        ]
+
+        while True:
+            await asyncio.sleep(random.randint(4, 8))
+            now = datetime.now().strftime("%H:%M:%S")
+            log_type, msg, color = random.choice(event_pool)
+            
+            # Para mutar el estado de Reflex desde una tarea en segundo plano de forma segura,
+            # usamos el contexto modificado del state si tu versión lo requiere, o asignación directa:
+            async with self:
+                new_log = LogEvent(time=now, log_type=log_type, msg=msg, color=color)
+                self.syslog_events.insert(0, new_log)
+                if len(self.syslog_events) > 4:
+                    self.syslog_events.pop()
