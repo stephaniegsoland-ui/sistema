@@ -16,17 +16,14 @@ class DashboardState(rx.State):
     ]
     is_monitoring: bool = False
 
+    @rx.event
     async def start_log_stream(self):
-        """Manejador inicial que levanta de forma segura el bucle asíncrono"""
+        """Manejador nativo de Reflex usando Yield para mantener el flujo vivo"""
         if self.is_monitoring:
             return
+        
         self.is_monitoring = True
         
-        # Disparamos el bucle infinito sin bloquear la renderización de la página
-        asyncio.create_task(self.run_logger_loop())
-
-    async def run_logger_loop(self):
-        """Bucle en segundo plano puro usando asyncio estándar"""
         event_pool = [
             ("SYS", "Sincronización exitosa con Base de Datos Laravel.", "#10b981"),
             ("AI", "Módulo IA: Procesamiento de análisis de EPP completado.", "#6366f1"),
@@ -37,15 +34,24 @@ class DashboardState(rx.State):
             ("SYS", "Cola de Tickets: Ticket TK-2847 pasó a estado [En Proceso].", "#f97316"),
         ]
 
-        while True:
+        # Convertimos el método en un Event Generator infinito
+        while self.is_monitoring:
             await asyncio.sleep(random.randint(4, 8))
+            
             now = datetime.now().strftime("%H:%M:%S")
             log_type, msg, color = random.choice(event_pool)
             
-            # Para mutar el estado de Reflex desde una tarea en segundo plano de forma segura,
-            # usamos el contexto modificado del state si tu versión lo requiere, o asignación directa:
-            async with self:
-                new_log = LogEvent(time=now, log_type=log_type, msg=msg, color=color)
-                self.syslog_events.insert(0, new_log)
-                if len(self.syslog_events) > 4:
-                    self.syslog_events.pop()
+            new_log = LogEvent(time=now, log_type=log_type, msg=msg, color=color)
+            
+            # Mutamos el estado directamente (Reflex se encarga del backend-to-frontend por el yield)
+            self.syslog_events.insert(0, new_log)
+            if len(self.syslog_events) > 4:
+                self.syslog_events.pop()
+                
+            # Emitimos el cambio al frontend inmediatamente
+            yield
+
+    @rx.event
+    def stop_log_stream(self):
+        """Por si necesitas detener el monitoreo de logs desde la UI"""
+        self.is_monitoring = False

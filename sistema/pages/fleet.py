@@ -1,6 +1,46 @@
+# --- sistema/pages/fleet.py ---
 import reflex as rx
-from .sidebar import sidebar
+from sistema.components.sidebar import sidebar
 
+# ==========================================
+# 1. ESTADO DE LA FLOTA (Simulado o Importado)
+# ==========================================
+class VehiculoModel(rx.Base):
+    nombre: str
+    placa: str
+    modelo: str
+    imagen_url: str
+    registrado: bool
+
+class FleetState(rx.State):
+    """Estado para manejar la lista de vehículos de la flota."""
+    vehiculos: list[VehiculoModel] = [
+        VehiculoModel(
+            nombre="Toyota Hilux", 
+            placa="AB123CD", 
+            modelo="Hilux 4x4 Chasis", 
+            imagen_url="/hilux.png", # Asegúrate de tener estas imágenes en tu carpeta 'assets/'
+            registrado=True
+        ),
+        VehiculoModel(
+            nombre="JAC Urban", 
+            placa="EF456GH", 
+            modelo="Urban HFC 1042", 
+            imagen_url="/jac_urban.png", 
+            registrado=True
+        ),
+        VehiculoModel(
+            nombre="Ford Super Duty", 
+            placa="F-350", 
+            modelo="Super Duty F-350 XL", 
+            imagen_url="", 
+            registrado=False
+        ),
+    ]
+
+# ==========================================
+# 2. COMPONENTES DE INTERFAZ (UI)
+# ==========================================
 def layout(component: rx.Component) -> rx.Component:
     """Envuelve cualquier página con el sidebar."""
     return rx.hstack(
@@ -11,19 +51,20 @@ def layout(component: rx.Component) -> rx.Component:
         height="100vh"
     )
 
-def vehiculo_card(vehi):
+def vehiculo_card(vehi: VehiculoModel):
     """Renderiza una tarjeta individual para cada vehículo de la flota."""
     return rx.vstack(
         # Encabezado de la tarjeta con el nombre del vehículo
         rx.hstack(
             rx.text(f"🚗 {vehi.nombre}", color="gold", font_weight="bold"),
             rx.spacer(),
-            spacing="2", width="100%"
+            spacing="2", 
+            width="100%"
         ),
         
         rx.cond(
             vehi.registrado,
-            # Contenido para vehículos con registro activo (Hilux, Jack)
+            # Contenido para vehículos con registro activo (Hilux, JAC)
             rx.vstack(
                 rx.image(
                     src=vehi.imagen_url, 
@@ -35,12 +76,11 @@ def vehiculo_card(vehi):
                 rx.vstack(
                     rx.text(f"Placa: {vehi.placa}", size="1", color="gray"),
                     rx.text(f"Modelo: {vehi.modelo}", font_weight="bold", size="3"),
-                    rx.text("Comparar salida Lunes vs regreso Viernes", size="1", color="gray"),
                     align_items="start", 
                     spacing="0",
                     width="100%"
                 ),
-                # Botón con enlace dinámico al módulo de inspección
+                # Botón con enlace dinámico al módulo de inspección específica
                 rx.link(
                     rx.button(
                         "Comparar Salida Lunes vs Regreso Viernes",
@@ -55,7 +95,7 @@ def vehiculo_card(vehi):
                 width="100%", 
                 spacing="3"
             ),
-            # Estado para vehículos no registrados (Carro, Duty)
+            # Estado para vehículos no registrados (Super Duty)
             rx.center(
                 rx.vstack(
                     rx.icon(tag="truck", size=40, color="#333"),
@@ -78,8 +118,8 @@ def vehiculo_card(vehi):
         _hover={"border": "1px solid gold", "transition": "0.3s"}
     )
 
-def fleet_comparison_view():
-    """Vista principal del módulo de Gestión de Flota."""
+def fleet_comparison_view() -> rx.Component:
+    """Vista interna del módulo de Gestión de Flota."""
     return rx.vstack(
         # Banner de Título Superior
         rx.vstack(
@@ -104,7 +144,7 @@ def fleet_comparison_view():
             align_items="start"
         ),
 
-        # Grid Responsivo de Vehículos (2 columnas en desktop)
+        # Grid Responsivo de Vehículos
         rx.grid(
             rx.foreach(FleetState.vehiculos, vehiculo_card),
             columns=rx.breakpoints(initial="1", sm="1", md="2", lg="2"),
@@ -133,7 +173,7 @@ def fleet_comparison_view():
             ),
             rx.hstack(
                 rx.badge("4", variant="solid", color_scheme="red", border_radius="full"), 
-                rx.text("El sistema detectará automáticamente cambios o daños ocurridos durante la semana", size="2"),
+                rx.text("El sistema detectará mediante IA daños u observaciones ocurridas en la semana", size="2"),
                 align_items="center"
             ),
             align_items="start", 
@@ -148,3 +188,11 @@ def fleet_comparison_view():
         spacing="4",
         padding="1em"
     )
+
+# ==========================================
+# 3. EXPORTACIÓN DE LA PÁGINA PRINCIPAL
+# ==========================================
+@rx.page(route="/fleet", title="Gestión de Flota - SOLAND")
+def fleet_page() -> rx.Component:
+    """Esta es la función exacta que importa sistema.py en la línea 10."""
+    return layout(fleet_comparison_view())

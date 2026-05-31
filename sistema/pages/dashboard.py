@@ -1,6 +1,6 @@
 # --- sistema/pages/dashboard.py ---
 import reflex as rx
-from sistema.components.sidebar import sidebar 
+from sistema.components.sidebar import sidebar
 from sistema.states.dashboard_state import DashboardState
 # IMPORTAMOS SOLO LA FUNCIÓN CONTENEDORA GLOBAL
 from sistema.components.dashboard_charts import general_dashboard_view 

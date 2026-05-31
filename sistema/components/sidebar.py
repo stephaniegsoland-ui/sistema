@@ -1,7 +1,5 @@
 import reflex as rx
 from sistema.states.personal_state import SessionState
-from sistema.pages.fleet import fleet_page
-from sistema.pages.stock import stock_page
 
 
 # --- En tu archivo sidebar.py ---
