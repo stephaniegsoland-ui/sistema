@@ -1,34 +1,74 @@
+# sistema/pages/stock.py
 import reflex as rx
 from sistema.states.stock_state import StockState
+from sistema.states.inventory_state import InventoryState
 from sistema.components.sidebar import sidebar
 from sistema.components.inventory_view import management_view
-# Importamos la vista modularizada que creamos
 from sistema.components.stock_chart import stock_resumen_view
+from sistema.components.crud_form import category_form_component
+
+def main_content_area() -> rx.Component:
+    """Renderiza el contenido dinámico central según la categoría seleccionada."""
+    return rx.box(
+        rx.cond(
+            InventoryState.current_category == "Resumen",
+            # 1. Cuando está en Resumen, monta tus KPIs y Gráficos reales de stock_chart
+            stock_resumen_view(), 
+            
+            # 2. Cuando hace clic en Herramientas, Botas, etc., monta el formulario y la tabla
+            rx.hstack(
+                # Columna Izquierda: Formulario adaptativo de inserción
+                category_form_component(),
+                
+                # Columna Derecha: Contenedor para la tabla de la BD o gestión existente
+                rx.vstack(
+                    rx.heading(f"Registros actuales en {InventoryState.current_category}", size="2", color="gray"),
+                    # Aquí puedes mapear la tabla dinámica de productos
+                    management_view(), 
+                    width="100%",
+                    padding="14px",
+                    background_color="#111113",
+                    border="1px solid #222225",
+                    border_radius="8px"
+                ),
+                spacing="4",
+                align_items="start",
+                width="100%"
+            )
+        ),
+        width="100%"
+    )
 
 def menu_button(text, icon):
+    """Botón del menú que actualiza el estado global al hacer clic."""
+    # Sincronizamos ambos estados para que la app sepa qué renderizar
     return rx.button(
         rx.hstack(
-            rx.icon(tag=icon, size=14), 
+            rx.icon(tag=icon, size=14),
             rx.text(text, font_size="0.85em")
         ),
-        on_click=lambda: StockState.set_view(text),
+        on_click=[
+            StockState.set_view(text), 
+            InventoryState.set_category(text)
+        ],
         variant="ghost",
         width="100%",
         justify_content="start",
-        # Efecto de botón activo
-        color=rx.cond(StockState.view == text, "white", "#888"),
-        bg=rx.cond(StockState.view == text, "#333", "transparent"),
-        _hover={"bg": "#222", "color": "white"},
-        padding="0.6em",
-        border_radius="5px"
+        color=rx.cond(InventoryState.current_category == text, "white", "#888"),
+        bg=rx.cond(InventoryState.current_category == text, "#222225", "transparent"),
+        _hover={"bg": "#141416", "color": "white"},
+        padding="0.7em 0.9em",
+        border_radius="8px"
     )
 
-def stock_page():
+@rx.page(route="/stock", title="Stock - SOLAND", on_load=StockState.load_products)
+def stock_page() -> rx.Component:
+    """Página raíz del inventario. Aquí se une el Layout Completo."""
     return rx.hstack(
-        # NIVEL 1: Sidebar Principal (Negro total con secciones)
-        sidebar(), # Importado de tus componentes existentes
+        # Tu Sidebar importado
+        sidebar(current_page="/stock"),
 
-        # NIVEL 2: Sidebar de Módulo (Soland Stock - Sistema de Inventario)
+        # Menú Interno de Categorías (Módulos de Soland Stock)
         rx.vstack(
             rx.vstack(
                 rx.icon(tag="package", size=24, color="white"),
@@ -40,7 +80,8 @@ def stock_page():
             ),
             rx.divider(border_color="#222"),
             rx.vstack(
-                menu_button("Resumen", "layout_dashboard"),
+                menu_button("Resumen", "layout-dashboard"),
+                menu_button("Todos", "grid"),
                 menu_button("Herramientas", "wrench"),
                 menu_button("Botas", "footprints"),
                 menu_button("Bragas", "shirt"),
@@ -51,27 +92,22 @@ def stock_page():
                 spacing="1",
                 padding="1em",
             ),
-            width="200px",
-            height="100vh",
-            bg="#0f0f0f", # Un gris casi negro para diferenciar del principal
+            width="220px",
+            min_height="100vh",
+            bg="#0f0f0f",
             border_right="1px solid #1a1a1a",
         ),
 
-        # NIVEL 3: Contenido Dinámico (Dashboard o Tablas)
+        # Espacio de Contenido Central
         rx.box(
-                rx.cond(
-                    StockState.view == "Resumen",
-                    stock_resumen_view(), # Componente separado de resumen (sin mapa)
-                    management_view()      # Componente de gestión (tablas, herramientas)
-                ),
-                flex="1",
-                padding="2em",
-                bg="#050505",
-                height="100vh",
-                overflow_y="auto"
-            ),
+            main_content_area(),
+            flex="1",
+            padding="2em",
+            bg="#050505",
+            min_height="100vh",
+            overflow_y="auto"
+        ),
         width="100%",
         spacing="0",
         bg="black"
     )
-

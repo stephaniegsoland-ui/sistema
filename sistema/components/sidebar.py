@@ -158,12 +158,13 @@ def sidebar(current_page: str = "") -> rx.Component:
             ),
             rx.button(
                 rx.hstack(rx.icon("log_out", size=16), rx.text("Salir")),
-                on_click=SessionState.salir_sistema,
+                on_click=SessionState.logout_usuario,
                 color_scheme="yellow",
                 variant="solid",
                 width="90%",
                 margin_x="auto",
-                margin_bottom="20px"
+                margin_bottom="20px",
+                type="button",
             ),
             width="100%"
         ),

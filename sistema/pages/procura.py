@@ -29,6 +29,7 @@ def procura_page() -> rx.Component:
                             rx.segmented_control.item("Revisadas", value="Revisadas"),
                             rx.segmented_control.item("Compradas", value="Compradas"),
                             rx.segmented_control.item("Enviadas", value="Enviadas"),
+                            rx.segmented_control.item("Devueltas", value="Devueltas"),
                             value=ProcuraState.view_tab,
                             on_change=ProcuraState.set_tab,
                             radius="large",
@@ -79,6 +80,7 @@ def procura_page() -> rx.Component:
                                 rx.grid(
                                     rx.input(placeholder="Solicitante", name="solicitante", width="100%"),
                                     rx.select(ProcuraState.departamentos, placeholder="Departamento receptor", name="departamento", width="100%"),
+                                    rx.select(ProcuraState.categorias, placeholder="Categoría", name="categoria", width="100%"),
                                     rx.input(placeholder="Material requerido", name="material", width="100%"),
                                     rx.input(placeholder="Cantidad", name="cantidad", type_="number", width="100%"),
                                     rx.vstack(
@@ -86,6 +88,7 @@ def procura_page() -> rx.Component:
                                         rx.input(type_="date", name="fecha_entrega", width="100%"),
                                         align_items="start", width="100%",
                                     ),
+                                    rx.select(ProcuraState.prioridades, placeholder="Prioridad", name="prioridad", width="100%"),
                                     rx.text_area(placeholder="Detalle / propósito", name="detalle", width="100%", min_height="120px"),
                                     rx.button("Solicitar Material", type_="submit", color_scheme="gold"),
                                     columns="2", gap="1.5em",
@@ -102,6 +105,15 @@ def procura_page() -> rx.Component:
                         rx.vstack(
                             rx.hstack(
                                 rx.text("Seguimiento de solicitudes", weight="bold"),
+                                rx.input(
+                                    placeholder="Buscar por solicitante, material, departamento o estado...",
+                                    on_change=ProcuraState.set_search,
+                                    width="320px",
+                                    size="2",
+                                    background_color="#111113",
+                                    border="1px solid #222225",
+                                    color="white",
+                                ),
                                 rx.spacer(),
                                 rx.text(f"Vista: {ProcuraState.view_tab}", color="gray"),
                             ),
@@ -113,45 +125,56 @@ def procura_page() -> rx.Component:
                                         rx.table.column_header_cell("Departamento"),
                                         rx.table.column_header_cell("Material"),
                                         rx.table.column_header_cell("Cantidad"),
+                                        rx.table.column_header_cell("Estado"),
                                         rx.table.column_header_cell("Revisado"),
                                         rx.table.column_header_cell("Comprado"),
                                         rx.table.column_header_cell("Enviado"),
+                                        rx.table.column_header_cell("Devuelto"),
                                         rx.table.column_header_cell("Acciones"),
                                     )
                                 ),
                                 rx.table.body(
                                     rx.foreach(
-                                        ProcuraState.solicitudes_filtradas.to(list[dict]), # Forzar a lista de diccionarios
+                                        ProcuraState.solicitudes_filtradas,
                                         lambda item: rx.table.row(
-                                            rx.table.cell(item["id"].to(str)),
-                                            rx.table.cell(item["solicitante"]),
-                                            rx.table.cell(item["departamento"]),
-                                            rx.table.cell(item["material"]),
-                                            rx.table.cell(item["cantidad"].to(str)),
-                                            rx.table.cell(status_badge(item["revisado"], "Sí", "No")),
-                                            rx.table.cell(status_badge(item["comprado"], "Sí", "No")),
-                                            rx.table.cell(status_badge(item["enviado"], "Sí", "No")),
+                                            rx.table.cell(str(item.id)),
+                                            rx.table.cell(item.solicitante),
+                                            rx.table.cell(item.departamento),
+                                            rx.table.cell(item.material),
+                                            rx.table.cell(str(item.cantidad)),
+                                            rx.table.cell(item.estado),
+                                            rx.table.cell(status_badge(item.revisado, "Sí", "No")),
+                                            rx.table.cell(status_badge(item.comprado, "Sí", "No")),
+                                            rx.table.cell(status_badge(item.enviado, "Sí", "No")),
+                                            rx.table.cell(status_badge(item.devuelto, "Sí", "No")),
                                             rx.table.cell(
                                                 rx.hstack(
                                                     rx.button(
                                                         "Revisado",
                                                         size="1",
                                                         variant="outline",
-                                                        disabled=item["revisado"],
-                                                        on_click=lambda: ProcuraState.marcar_revisado(item["id"]),
+                                                        disabled=item.revisado,
+                                                        on_click=lambda request_id=item.id: ProcuraState.marcar_revisado(request_id),
                                                     ),
                                                     rx.button(
                                                         "Comprado",
                                                         size="1",
-                                                        disabled=(~item["revisado"]) | item["comprado"], 
-                                                        on_click=lambda: ProcuraState.marcar_comprado(item["id"])
+                                                        disabled=rx.cond(item.revisado, item.comprado, True),
+                                                        on_click=lambda request_id=item.id: ProcuraState.marcar_comprado(request_id),
                                                     ),
                                                     rx.button(
                                                         "Enviado",
                                                         size="1",
                                                         variant="outline",
-                                                        disabled=(~item["comprado"]) | item["enviado"],
-                                                        on_click=lambda: ProcuraState.marcar_enviado(item["id"]),
+                                                        disabled=rx.cond(item.comprado, item.enviado, True),
+                                                        on_click=lambda request_id=item.id: ProcuraState.marcar_enviado(request_id),
+                                                    ),
+                                                    rx.button(
+                                                        "Devuelto",
+                                                        size="1",
+                                                        variant="outline",
+                                                        disabled=rx.cond(item.enviado, item.devuelto, True),
+                                                        on_click=lambda request_id=item.id: ProcuraState.marcar_devuelto(request_id),
                                                     ),
                                                     spacing="2",
                                                     wrap="wrap",

@@ -39,7 +39,7 @@ def actividad_item(act: dict):
             spacing="0", align_items="start",
         ),
         rx.spacer(),
-        rx.icon(tag="clock", size=12, color="gray"),
+        rx.icon(tag="clock", size=9, color="gray"),
         width="100%", align="center", padding_y="2",
         border_bottom=f"1px solid {rx.color('gray', 3)}",
     )

@@ -185,7 +185,7 @@ def inspeccion_page() -> rx.Component:
                                 rx.foreach(
                                     InspeccionState.damage_map_lunes,
                                     lambda item: rx.box(
-                                        rx.text(item["tipo"], color="white", font_size="xs", padding="0.2em", bg="rgba(255,0,0,0.8)", border_radius="sm", position="absolute", top=f"{item['y']}%", left=f"{item['x']}%", z_index="3"),
+                                        rx.text(item["tipo"], color="white", font_size="2", padding="0.2em", bg="rgba(255,0,0,0.8)", border_radius="sm", position="absolute", top=f"{item['y']}%", left=f"{item['x']}%", z_index="3"),
                                         position="absolute",
                                         top=f"{item['y']}%",
                                         left=f"{item['x']}%",
@@ -211,7 +211,7 @@ def inspeccion_page() -> rx.Component:
                                 rx.foreach(
                                     InspeccionState.damage_map_viernes,
                                     lambda item: rx.box(
-                                        rx.text(item["tipo"], color="white", font_size="xs", padding="0.2em", bg="rgba(34,197,94,0.85)", border_radius="sm", position="absolute", top=f"{item['y']}%", left=f"{item['x']}%", z_index="3"),
+                                        rx.text(item["tipo"], color="white", font_size="", padding="0.2em", bg="rgba(34,197,94,0.85)", border_radius="sm", position="absolute", top=f"{item['y']}%", left=f"{item['x']}%", z_index="3"),
                                         position="absolute",
                                         top=f"{item['y']}%",
                                         left=f"{item['x']}%",

@@ -10,12 +10,27 @@ class Usuario(SQLModel, table=True):
     password: str
     nivel: int = 1  # 1: Admin, 2: Supervisor, 3: Usuario
     estado: str = "activo"
+    telefono: str = Field(default="")
+    direccion: str = Field(default="")
+    notas: str = Field(default="")
+    cv_url: str = Field(default="")
+    foto_url: str = Field(default="")
+    vehiculo_asignado: str = Field(default="")
 
 class Producto(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     nombre: str
     cantidad: int
     categoria: str # Ej: "Almacén Central", "Logística"
+
+class MovimientoStock(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    producto_id: int
+    producto_nombre: str
+    fecha: str
+    cambio: int
+    tipo: str
+    nota: str = ""
 
 class InspeccionReporte(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -35,12 +50,18 @@ class ProcuraSolicitud(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     solicitante: str
     departamento: str
+    categoria: str = Field(default="General")
     material: str
     cantidad: int
+    prioridad: str = Field(default="Normal")
+    fecha_entrega_deseada: str = Field(default="")
     detalle: str = Field(default="")
+    observaciones: str = Field(default="")
     revisado: bool = Field(default=False)
     comprado: bool = Field(default=False)
     enviado: bool = Field(default=False)
+    devuelto: bool = Field(default=False)
+    estado: str = Field(default="Pendiente")
     fecha_solicitud: str = Field(default="")
 
 class Vehiculo(rx.Base):

@@ -13,6 +13,9 @@ class FleetState(rx.State):
         Vehiculo(nombre="Duty", modelo="Super duty", placa="---", imagen_url="/super_duty.png"),
     ]
 
+    # Convenience list of placas (non-reactive) to use in selects
+    placas: List[str] = [v.placa for v in vehiculos]
+
     def iniciar_comparacion(self, placa: str):
         # Aquí redirigirías a la página de inspección con IA
         return rx.console_log(f"Iniciando inspección para placa: {placa}")

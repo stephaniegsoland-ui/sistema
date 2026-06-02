@@ -3,14 +3,14 @@ services:
     image: mysql:8.4
     container_name: gestion_db
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: sistema_reflex_db
+      MYSQL_ROOT_PASSWORD: root_password  # <-- Asegúrate de usar esta misma en rxconfig.py
+      MYSQL_DATABASE: sistema_laravel_db   # <-- CAMBIADO: Debe ser el nombre real de tu BD
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pnot_used"] # Corrección menor para evitar falsos negativos en el healthcheck de MySQL 8
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,18 +20,15 @@ services:
     container_name: app_reflex
     ports:
       - "3000:3000"
-      - "8001:8000"
+      - "8000:8000"
     environment:
       - PYTHONPATH=/app
-      - DB_URL=mysql+pymysql://root:root_password@gestion_db:3306/sistema_reflex_db
-    # --- CAMBIO AQUÍ ---
+      - DB_URL=mysql+pymysql://root:root_password@gestion_db:3306/sistema_laravel_db # <-- CAMBIADO: Clave y BD corregidas
     volumes:
-      - .:/app  # Sincroniza tu carpeta actual con /app en el contenedor
+      - .:/app  
     depends_on:
       gestion_db:
         condition: service_healthy
 
 volumes:
   db_data:
-
- 

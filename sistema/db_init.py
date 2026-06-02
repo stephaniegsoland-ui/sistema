@@ -1,7 +1,8 @@
 import os
 from sqlalchemy import text
 from sqlmodel import SQLModel, create_engine, select, Session
-from .api.models import Usuario, Producto, InspeccionReporte, ProcuraSolicitud
+from .api.models import Usuario, Producto, InspeccionReporte, ProcuraSolicitud, MovimientoStock
+from datetime import datetime
 
 
 def get_db_url() -> str:
@@ -60,6 +61,23 @@ def initialize_database() -> None:
                 Producto(nombre="Impresora", cantidad=8, categoria="Oficina"),
             ]
             session.add_all(productos)
+            session.commit()
+
+        if session.exec(select(MovimientoStock)).first() is None:
+            productos_existentes = session.exec(select(Producto)).all()
+            movimientos = []
+            for producto in productos_existentes[:4]:
+                movimientos.append(
+                    MovimientoStock(
+                        producto_id=producto.id,
+                        producto_nombre=producto.nombre,
+                        fecha=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+                        cambio=producto.cantidad,
+                        tipo="Inicial",
+                        nota="Stock inicial cargado",
+                    )
+                )
+            session.add_all(movimientos)
 
         session.commit()
 

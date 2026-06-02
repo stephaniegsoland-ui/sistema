@@ -40,6 +40,10 @@ app.add_page(
     login_page, 
     route="/"
 )
+app.add_page(
+    login_page,
+    route="/login"
+)
 
 app.add_page(
     personal_page, 

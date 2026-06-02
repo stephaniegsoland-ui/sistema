@@ -2,7 +2,7 @@ import reflex as rx
 from typing import List
 from datetime import datetime
 from sqlmodel import select
-from ..api.models import ProcuraSolicitud, Producto, Usuario
+from ..api.models import ProcuraSolicitud, Producto, Usuario, MovimientoStock
 from ..db_init import get_session
 from typing import Any
 from typing import Dict
@@ -97,18 +97,23 @@ class ProcuraState(rx.State):
     def actividad_reciente(self) -> list[dict]:
         """Retorna las últimas 5 acciones registradas"""
         actividades = []
-        # Ordenamos por ID para ver lo más nuevo
         sol_ordenadas = sorted(self.solicitudes, key=lambda x: x.id, reverse=True)[:5]
         for s in sol_ordenadas:
-            status = "Enviado" if s.enviado else "Comprado" if s.comprado else "Revisado" if s.revisado else "Pendiente"
+            status = (
+                "Devuelto" if s.devuelto else
+                "Entregado" if s.enviado else
+                "Comprado" if s.comprado else
+                "Revisado" if s.revisado else
+                "Pendiente"
+            )
             actividades.append({
                 "descripcion": f"{s.solicitante} solicitó {s.material}",
                 "status": status,
                 "info": f"Cant: {s.cantidad}"
             })
         return actividades
-    
-    solicitudes: List[Dict] = []
+
+    # El estado de las solicitudes se guarda directamente en el modelo SQLModel.
 
     @rx.var
     def stats_embudo_progreso(self) -> List[Dict]:
@@ -163,6 +168,16 @@ class ProcuraState(rx.State):
     view_tab: str = "Todas"
     search_text: str = ""
     
+    categorias: List[str] = [
+        "Herramientas",
+        "Botas",
+        "Bragas",
+        "Suministros",
+        "Lentes",
+        "Equipos",
+        "Otros",
+    ]
+    prioridades: List[str] = ["Normal", "Urgente"]
     departamentos: List[str] = [
         "Compras",
         "Almacén",
@@ -188,16 +203,33 @@ class ProcuraState(rx.State):
         return sum(1 for item in self.solicitudes if item.enviado)
 
     @rx.var
+    def total_devueltas(self) -> int:
+        return sum(1 for item in self.solicitudes if item.devuelto)
+
+    @rx.var
     def solicitudes_filtradas(self) -> List[ProcuraSolicitud]:
+        results = self.solicitudes
+        if self.search_text:
+            query = self.search_text.lower()
+            results = [
+                item for item in results
+                if query in item.material.lower()
+                or query in item.solicitante.lower()
+                or query in item.departamento.lower()
+                or query in item.estado.lower()
+            ]
+
         if self.view_tab == "Pendientes":
-            return [item for item in self.solicitudes if not item.revisado]
+            return [item for item in results if not item.revisado]
         if self.view_tab == "Revisadas":
-            return [item for item in self.solicitudes if item.revisado]
+            return [item for item in results if item.revisado and not item.comprado]
         if self.view_tab == "Compradas":
-            return [item for item in self.solicitudes if item.comprado]
+            return [item for item in results if item.comprado and not item.enviado]
         if self.view_tab == "Enviadas":
-            return [item for item in self.solicitudes if item.enviado]
-        return self.solicitudes
+            return [item for item in results if item.enviado and not item.devuelto]
+        if self.view_tab == "Devueltas":
+            return [item for item in results if item.devuelto]
+        return results
 
     def load_solicitudes(self):
         with get_session() as session:
@@ -250,26 +282,54 @@ class ProcuraState(rx.State):
         self.load_solicitudes()
         return rx.window_alert("Solicitud enviada a aprobación")
 
+    def _record_stock_movement(self, producto_nombre: str, cantidad: int, tipo: str, nota: str):
+        with get_session() as session:
+            producto = session.exec(select(Producto).where(Producto.nombre == producto_nombre)).first()
+            if producto:
+                producto.cantidad = max(0, producto.cantidad + cantidad)
+                session.add(producto)
+                session.commit()
+                movimiento = MovimientoStock(
+                    producto_id=producto.id,
+                    producto_nombre=producto.nombre,
+                    fecha=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+                    cambio=cantidad,
+                    tipo=tipo,
+                    nota=nota,
+                )
+                session.add(movimiento)
+                session.commit()
+
     def _actualizar_estado(self, solicitud_id: int, tipo_accion: str):
         with get_session() as session:
             solicitud = session.get(ProcuraSolicitud, solicitud_id)
             if solicitud:
-                # En lugar de solicitud.estado = ..., usamos esto:
                 if tipo_accion == "Revisada":
                     solicitud.revisado = True
+                    solicitud.estado = "Revisada"
                 elif tipo_accion == "Comprada":
                     solicitud.comprado = True
+                    solicitud.estado = "Comprada"
                 elif tipo_accion == "Enviada":
                     solicitud.enviado = True
-                
+                    solicitud.estado = "Entregada"
+                    if solicitud.cantidad > 0:
+                        self._record_stock_movement(solicitud.material, -solicitud.cantidad, "Salida", "Material entregado desde solicitud")
+                elif tipo_accion == "Devuelta":
+                    solicitud.devuelto = True
+                    solicitud.estado = "Devuelta"
+                    if solicitud.cantidad > 0:
+                        self._record_stock_movement(solicitud.material, solicitud.cantidad, "Retorno", "Material devuelto a inventario")
+
                 session.add(solicitud)
                 session.commit()
         return self.load_solicitudes()
+
     def aprobar_solicitud(self, id: int):
         self._actualizar_estado(id, "Aprobada")
 
     def rechazar_solicitud(self, id: int, motivo: str):
-        self._actualizar_estado(id, "Rechazada", motivo)
+        self._actualizar_estado(id, "Rechazada")
 
     def marcar_revisado(self, solicitud_id: int):
         self._actualizar_estado(solicitud_id, "Revisada")
@@ -279,3 +339,6 @@ class ProcuraState(rx.State):
 
     def marcar_enviado(self, solicitud_id: int):
         self._actualizar_estado(solicitud_id, "Enviada")
+
+    def marcar_devuelto(self, solicitud_id: int):
+        self._actualizar_estado(solicitud_id, "Devuelta")
