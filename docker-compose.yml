@@ -4,7 +4,7 @@ services:
     container_name: gestion_db
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: sistema_laravel_db 
+      MYSQL_DATABASE: sistema_reflex_db
     ports:
       - "3306:3306"
     volumes:

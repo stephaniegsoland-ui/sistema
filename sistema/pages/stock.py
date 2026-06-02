@@ -1,9 +1,9 @@
 import reflex as rx
-from ..states.stock_state import StockState
-from ..components.sidebar import sidebar
-from ..components.stock_dashboard import dashboard_view
-from ..components.inventory_view import management_view
-
+from sistema.states.stock_state import StockState
+from sistema.components.sidebar import sidebar
+from sistema.components.inventory_view import management_view
+# Importamos la vista modularizada que creamos
+from sistema.components.stock_chart import stock_resumen_view
 
 def menu_button(text, icon):
     return rx.button(
@@ -59,17 +59,17 @@ def stock_page():
 
         # NIVEL 3: Contenido Dinámico (Dashboard o Tablas)
         rx.box(
-            rx.cond(
-                StockState.view == "Resumen",
-                dashboard_view(),
-                management_view()
+                rx.cond(
+                    StockState.view == "Resumen",
+                    stock_resumen_view(), # Componente separado de resumen (sin mapa)
+                    management_view()      # Componente de gestión (tablas, herramientas)
+                ),
+                flex="1",
+                padding="2em",
+                bg="#050505",
+                height="100vh",
+                overflow_y="auto"
             ),
-            flex="1",
-            padding="2em",
-            bg="#050505",
-            height="100vh",
-            overflow_y="auto"
-        ),
         width="100%",
         spacing="0",
         bg="black"

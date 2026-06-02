@@ -1,3 +1,4 @@
+from sqlalchemy import Column, Text
 from sqlmodel import SQLModel, Field
 from typing import Optional
 import reflex as rx
@@ -15,6 +16,32 @@ class Producto(SQLModel, table=True):
     nombre: str
     cantidad: int
     categoria: str # Ej: "Almacén Central", "Logística"
+
+class InspeccionReporte(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    placa: str
+    modelo: str
+    responsable: str
+    fecha: str
+    estado_final: str
+    recomendacion: str = Field(sa_column=Column(Text), default="")
+    url_lunes: str
+    url_viernes: str
+    hallazgos_json: str = Field(sa_column=Column(Text), default="")
+    damage_map_lunes_json: str = Field(sa_column=Column(Text), default="")
+    damage_map_viernes_json: str = Field(sa_column=Column(Text), default="")
+
+class ProcuraSolicitud(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    solicitante: str
+    departamento: str
+    material: str
+    cantidad: int
+    detalle: str = Field(default="")
+    revisado: bool = Field(default=False)
+    comprado: bool = Field(default=False)
+    enviado: bool = Field(default=False)
+    fecha_solicitud: str = Field(default="")
 
 class Vehiculo(rx.Base):
     nombre: str

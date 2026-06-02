@@ -9,6 +9,11 @@ from .pages.stock import stock_page
 from .pages.epp import epp_page  # Importante para que /epp funcione
 from .pages.fleet import fleet_page
 from .pages.inspeccion import inspeccion_page
+from .pages.reportes import reportes_page
+from sistema.pages.procura_stats import procura_stats_page
+from .pages.procura import procura_page
+from .pages.timesheet import timesheet_page
+from .pages.personal import personal_page
 # 2. Inicializar la base de datos al arrancar
 try:
     initialize_database()
@@ -37,6 +42,11 @@ app.add_page(
 )
 
 app.add_page(
+    personal_page, 
+    route="/personal"
+)
+
+app.add_page(
     dashboard_page, 
     route="/dashboard"
 )
@@ -49,6 +59,16 @@ app.add_page(
 app.add_page(
     epp_page, 
     route="/epp"
+)
+
+app.add_page(
+    procura_page,
+    route="/procura"
+)
+
+app.add_page(
+    reportes_page,
+    route="/vehiculos/reportes"
 )
 
 
